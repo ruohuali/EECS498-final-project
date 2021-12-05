@@ -13,7 +13,6 @@ def kalmanFilter(mu, sigma, z, u):
     @param sigma ~ (2, 2)
     @param z ~ (2, 1)
     @param u ~ (2, 1)
-    @param z ~ (2, 1)
     """
     A = np.eye(2)
     B = np.eye(2)

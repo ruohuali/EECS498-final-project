@@ -49,8 +49,20 @@ def genNormalSensorNoise():
     # noise = np.concatenate(( noise, np.zeros((1, 1)) ), axis=0)
     return noise
 
+def genNormalMotionNoise():
+    '''@return noise ~ (2, 1)'''
+    MEAN = [0, 0]
+    COV = [1, 1]
+    mu = np.array(MEAN)
+    sigma = np.diag(COV)
+    noise = np.random.multivariate_normal(mu, sigma, 1).T
+    # noise = np.concatenate(( noise, np.zeros((1, 1)) ), axis=0)
+    return noise
 
-NOISE_FUNC = genNormalSensorNoise
+
+SENSOR_NOISE_FUNC = genNormalSensorNoise
+MOTION_NOISE_FUNC = genNormalMotionNoise
 
 if __name__ == "__main__":
-    print(genNormalSensorNoise())
+    x = genNormalSensorNoise()
+    print(x, x.shape)
