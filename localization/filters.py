@@ -55,7 +55,6 @@ class ParticleFilter:
         self.particles = self.particles[samples]
         self.weights = np.ones(self.particle_num) / self.particle_num  # N,
         # self.weights = self.weights[samples]
-        self.weights /= np.sum(self.weights)
 
     def __init__(self, init_pos, particle_num=100):
         self.particle_num = particle_num
@@ -81,20 +80,16 @@ class ParticleFilter:
         # resample
         N_eff = 1 / np.sum(np.square(self.weights))
         if N_eff < self.particle_num / 2:
+            print("resample")
             self.resample()
 
+        self.weights /= np.sum(self.weights)
         self.weights = softmax(self.weights)
 
         # estimate
         loc = np.average(self.particles, weights=self.weights, axis=0)
         loc = loc.reshape(-1, 1)
 
-        # plt.scatter(self.particles[:,0], self.particles[:,1], color='b')
-        # plt.scatter(gt[0,:], gt[1,:], color='r')
-        # plt.scatter(loc[0,:], loc[1,:], color='g')
-        # plt.xlim(0, 11)
-        # plt.ylim(-5, 5)
-        # plt.show()
         return loc
 
 

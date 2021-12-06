@@ -3,22 +3,23 @@ import time
 import pybullet_data
 import numpy as np
 
-from CONFIG import ROBOT_START_COORD, ROBOT_CMDS, TABLE1_COORD, TABLE2_COORD, SENSOR_NOISE_FUNC, MOTION_NOISE_FUNC
+from CONFIG import ROBOT_START_COORD, ROBOT_CMDS, TABLE1_COORD, TABLE2_COORD, \
+                   SENSOR_NOISE_FUNC, SENSOR_NOISE_ARGS, MOTION_NOISE_FUNC, MOTION_NOISE_ARGS
 from loc_utils import drawSphereMarker, drawSphereMarker4Particles
 from loc_utils import pose2Coord, coord2Pose, cmd2PoseChange, updateCoordByCmd
 from filters import KalmanFilter, ParticleFilter
 
 
-def gps(body_id, noise_func):
+def gps(body_id, noise_func, noise_args):
     """@return noisy pose ~ (2, 1) is true coord + noise"""
     true_coord, _ = p.getBasePositionAndOrientation(body_id)  # tuple(x, y, z)
     true_pos = coord2Pose(true_coord)
-    noise = noise_func()
+    noise = noise_func(**noise_args)
     noisy_pose = true_pos + noise
     return noisy_pose
 
 
-def motor(cmd, noise_func):
+def motor(cmd, noise_func, noise_args):
     """
     @note
     The original formulation is
@@ -30,7 +31,7 @@ def motor(cmd, noise_func):
     """
     u = cmd2PoseChange(cmd)
     true_cmd = u
-    noise = noise_func()
+    noise = noise_func(**noise_args)
     received_cmd = true_cmd - noise
     return received_cmd
 
@@ -54,8 +55,7 @@ def main():
     sigma = np.eye(2)
     kf = KalmanFilter(mu, sigma)
     init_pos = coord2Pose(robot_cur_coord)
-    pf = ParticleFilter(init_pos, particle_num=100)
-    time.sleep(5)
+    pf = ParticleFilter(init_pos, particle_num=10000)
     for step_idx, cmd in enumerate(ROBOT_CMDS):
         print("-" * 50)
         print("step", step_idx)
@@ -68,24 +68,23 @@ def main():
         drawSphereMarker([true_coord[0], true_coord[1], 1], 0.05, (0, 1, 0, .8))  # green is gt
 
         # filter try to estimate pose
-        z = gps(robot_id, SENSOR_NOISE_FUNC)
-        u = motor(cmd, MOTION_NOISE_FUNC)
+        z = gps(robot_id, SENSOR_NOISE_FUNC, SENSOR_NOISE_ARGS)
+        u = motor(cmd, MOTION_NOISE_FUNC, MOTION_NOISE_ARGS)
 
         mu, sigma = kf(z, u)
-        print("shape", mu.shape, sigma.shape, u.shape, z.shape)
         drawSphereMarker([mu[0, :], mu[1, :], 1], 0.05, (1, 0, 0, .8))  # red is kf
 
         es = pf(z, u)
         drawSphereMarker([es[0, :], es[1, :], 1], 0.05, (0, 0, 1, .8))  # blue is pf
-        # drawSphereMarker4Particles(pf.particles)
+        drawSphereMarker4Particles(pf.particles)
 
         # print the pos
-        print("true pos", true_coord)
-        print("robot cur pos", robot_cur_coord)
-        print("noisy pos", z)
-        print("estimation", mu)
+        # print("true pos", true_coord)
+        # print("robot cur pos", robot_cur_coord)
+        # print("noisy pos", z)
+        # print("estimation", mu)
 
-        time.sleep(1. / 4.)
+        # time.sleep(1. / 4.)
 
     while True:
         pass

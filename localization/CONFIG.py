@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from noises import genNormalNoise, genMultNormalNoise, genUniformNoise
 
 ROBOT_START_COORD = [0, 0, 0]
 TABLE1_COORD = [6, 0, 0]
@@ -39,59 +40,15 @@ ROBOT_CMDS = [np.array([0, 0]),   # x 0 y 0
               ]
 
 
-
-def genNormalSensorNoise(mean=[0, 0], cov=[1, 1]):
-    """@return noise ~ (2, 1)"""
-    mu = np.array(mean)
-    sigma = np.diag(cov)
-    noise = np.random.multivariate_normal(mu, sigma, 1).T
-    # noise = np.concatenate(( noise, np.zeros((1, 1)) ), axis=0)
-    return noise
-
-def genNormalMotionNoise(mean=[0, 0], cov=[0.1, 0.1]):
-    """@return noise ~ (2, 1)"""
-    mu = np.array(mean)
-    sigma = np.diag(cov)
-    noise = np.random.multivariate_normal(mu, sigma, 1).T
-    # noise = np.concatenate(( noise, np.zeros((1, 1)) ), axis=0)
-    return noise
-
-def gen4MNormalSensorNoise():
-    noise = np.zeros((2, 1))
-    mean = [1, 1]
-    cov = [1, 1]
-    noise += genNormalSensorNoise(mean, cov)
-    mean = [-1, 1]
-    cov = [1, 1]
-    noise += genNormalSensorNoise(mean, cov)
-    mean = [1, -1]
-    cov = [1, 1]
-    noise += genNormalSensorNoise(mean, cov)
-    mean = [-1, -1]
-    cov = [1, 1]
-    noise += genNormalSensorNoise(mean, cov)
-
-    mean = [2, -2]
-    cov = [0.5, 0.5]
-    noise += genNormalSensorNoise(mean, cov)
-    mean = [-2, 2]
-    cov = [0.5, 0.5]
-    noise += genNormalSensorNoise(mean, cov)
-    mean = [-2, -2]
-    cov = [0.5, 0.5]
-    noise += genNormalSensorNoise(mean, cov)
-    mean = [2, 2]
-    cov = [0.5, 0.5]
-    noise += genNormalSensorNoise(mean, cov)
-    return noise
-
-
-# SENSOR_NOISE_FUNC = genNormalSensorNoise
-SENSOR_NOISE_FUNC = gen4MNormalSensorNoise
-MOTION_NOISE_FUNC = genNormalSensorNoise
+# SENSOR_NOISE_FUNC = genNormalNoise
+# SENSOR_NOISE_ARGS = {"mean": [0, 0], "cov": [1, 1]}
+SENSOR_NOISE_FUNC = genUniformNoise
+SENSOR_NOISE_ARGS = {"center": 0, "length": 2}
+MOTION_NOISE_FUNC = genNormalNoise
+MOTION_NOISE_ARGS = {"mean": [0, 0], "cov": [0.1, 0.1]}
 
 if __name__ == "__main__":
     # x = genNormalSensorNoise()
     # print(x, x.shape)
-    noise = np.random.multivariate_normal([1, 1], [[1,0],[0,1]], 10)
-    print(noise.shape)
+    n = np.random.multivariate_normal([1, 1], [[1,0],[0,1]], 10)
+    print(n.shape)
