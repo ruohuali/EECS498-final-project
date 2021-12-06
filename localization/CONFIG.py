@@ -40,29 +40,55 @@ ROBOT_CMDS = [np.array([0, 0]),   # x 0 y 0
 
 
 
-def genNormalSensorNoise():
+def genNormalSensorNoise(mean=[0, 0], cov=[1, 1]):
     """@return noise ~ (2, 1)"""
-    MEAN = [0, 0]
-    COV = [1, 1]
-    mu = np.array(MEAN)
-    sigma = np.diag(COV)
+    mu = np.array(mean)
+    sigma = np.diag(cov)
     noise = np.random.multivariate_normal(mu, sigma, 1).T
     # noise = np.concatenate(( noise, np.zeros((1, 1)) ), axis=0)
     return noise
 
-def genNormalMotionNoise():
+def genNormalMotionNoise(mean=[0, 0], cov=[0.1, 0.1]):
     """@return noise ~ (2, 1)"""
-    MEAN = [0, 0]
-    COV = [0.1, 0.1]
-    mu = np.array(MEAN)
-    sigma = np.diag(COV)
+    mu = np.array(mean)
+    sigma = np.diag(cov)
     noise = np.random.multivariate_normal(mu, sigma, 1).T
     # noise = np.concatenate(( noise, np.zeros((1, 1)) ), axis=0)
     return noise
 
+def gen4MNormalSensorNoise():
+    noise = np.zeros((2, 1))
+    mean = [1, 1]
+    cov = [1, 1]
+    noise += genNormalSensorNoise(mean, cov)
+    mean = [-1, 1]
+    cov = [1, 1]
+    noise += genNormalSensorNoise(mean, cov)
+    mean = [1, -1]
+    cov = [1, 1]
+    noise += genNormalSensorNoise(mean, cov)
+    mean = [-1, -1]
+    cov = [1, 1]
+    noise += genNormalSensorNoise(mean, cov)
 
-SENSOR_NOISE_FUNC = genNormalSensorNoise
-MOTION_NOISE_FUNC = genNormalMotionNoise
+    mean = [2, -2]
+    cov = [0.5, 0.5]
+    noise += genNormalSensorNoise(mean, cov)
+    mean = [-2, 2]
+    cov = [0.5, 0.5]
+    noise += genNormalSensorNoise(mean, cov)
+    mean = [-2, -2]
+    cov = [0.5, 0.5]
+    noise += genNormalSensorNoise(mean, cov)
+    mean = [2, 2]
+    cov = [0.5, 0.5]
+    noise += genNormalSensorNoise(mean, cov)
+    return noise
+
+
+# SENSOR_NOISE_FUNC = genNormalSensorNoise
+SENSOR_NOISE_FUNC = gen4MNormalSensorNoise
+MOTION_NOISE_FUNC = genNormalSensorNoise
 
 if __name__ == "__main__":
     # x = genNormalSensorNoise()

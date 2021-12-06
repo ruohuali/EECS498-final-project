@@ -28,5 +28,7 @@ def drawSphereMarker(position, radius, color):
 
 def drawSphereMarker4Particles(particles):
     # N, 2
-    for particle in particles:
-        drawSphereMarker([particle[0], particle[1], 1], 0.001, (0, 0.1, 0.9, 0.1))
+    for i, particle in enumerate(particles):
+        drawSphereMarker([particle[0], particle[1], 1], 0.03, (0, 0.5, 0.7, 0.6))
+        if i > 25:
+            break
