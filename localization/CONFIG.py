@@ -43,9 +43,12 @@ ROBOT_CMDS = [np.array([0, 0]),   # x 0 y 0
 # SENSOR_NOISE_FUNC = genNormalNoise
 # SENSOR_NOISE_ARGS = {"mean": [0, 0], "cov": [1, 1]}
 SENSOR_NOISE_FUNC = genUniformNoise
-SENSOR_NOISE_ARGS = {"center": 0, "length": 2}
-MOTION_NOISE_FUNC = genNormalNoise
-MOTION_NOISE_ARGS = {"mean": [0, 0], "cov": [0.1, 0.1]}
+SENSOR_NOISE_ARGS = {"center": -2, "length": 2}
+# MOTION_NOISE_FUNC = genNormalNoise
+# MOTION_NOISE_ARGS = {"mean": [0, 0], "cov": [0.1, 0.1]}
+MOTION_NOISE_FUNC = genUniformNoise
+MOTION_NOISE_ARGS = {"center": 0, "length": 1}
+
 
 if __name__ == "__main__":
     # x = genNormalSensorNoise()

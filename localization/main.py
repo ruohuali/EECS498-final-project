@@ -5,7 +5,7 @@ import numpy as np
 
 from CONFIG import ROBOT_START_COORD, ROBOT_CMDS, TABLE1_COORD, TABLE2_COORD, \
                    SENSOR_NOISE_FUNC, SENSOR_NOISE_ARGS, MOTION_NOISE_FUNC, MOTION_NOISE_ARGS
-from loc_utils import drawSphereMarker, drawSphereMarker4Particles
+from loc_utils import drawSphereMarker, drawSphereMarker4Particles, drawSphereMarker4Gaussian
 from loc_utils import pose2Coord, coord2Pose, cmd2PoseChange, updateCoordByCmd
 from filters import KalmanFilter, ParticleFilter
 
@@ -55,7 +55,7 @@ def main():
     sigma = np.eye(2)
     kf = KalmanFilter(mu, sigma)
     init_pos = coord2Pose(robot_cur_coord)
-    pf = ParticleFilter(init_pos, particle_num=10000)
+    pf = ParticleFilter(init_pos, particle_num=100)
     for step_idx, cmd in enumerate(ROBOT_CMDS):
         print("-" * 50)
         print("step", step_idx)
@@ -73,10 +73,11 @@ def main():
 
         mu, sigma = kf(z, u)
         drawSphereMarker([mu[0, :], mu[1, :], 1], 0.05, (1, 0, 0, .8))  # red is kf
+        drawSphereMarker4Gaussian(mu, sigma)
 
         es = pf(z, u)
         drawSphereMarker([es[0, :], es[1, :], 1], 0.05, (0, 0, 1, .8))  # blue is pf
-        drawSphereMarker4Particles(pf.particles)
+        drawSphereMarker4Particles(pf)
 
         # print the pos
         # print("true pos", true_coord)

@@ -26,9 +26,16 @@ def drawSphereMarker(position, radius, color):
     marker_id = p.createMultiBody(basePosition=position, baseCollisionShapeIndex=-1, baseVisualShapeIndex=vs_id)
     return marker_id
 
-def drawSphereMarker4Particles(particles):
-    # N, 2
+def drawSphereMarker4Particles(particle_filter, k=100):
+    particles = particle_filter.particles.copy()
+    weights = particle_filter.weights.copy()
+    topk_ids = np.argpartition(weights, -k)[-k:]
+    particles = particles[topk_ids]
     for i, particle in enumerate(particles):
         drawSphereMarker([particle[0], particle[1], 1], 0.03, (0, 0.5, 0.7, 0.6))
-        if i > 25:
-            break
+
+
+def drawSphereMarker4Gaussian(mu, sigma, k=100):
+    samples = np.random.multivariate_normal(mu.squeeze(), sigma, k)
+    for i, sample in enumerate(samples):
+        drawSphereMarker([sample[0], sample[1], 1], 0.03, (0.7, 0.5, 0, 0.6))

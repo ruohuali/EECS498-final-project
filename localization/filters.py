@@ -46,7 +46,7 @@ class ParticleFilter:
 
     def move(self, u):
         """@param u ~ (2, 1)"""
-        noise = np.random.multivariate_normal([0, 0], [[0.01, 0], [0, 0.01]], self.particle_num)  # (N, 2)
+        noise = np.random.multivariate_normal([0, 0], [[0.2, 0], [0, 0.2]], self.particle_num)  # (N, 2)
         self.particles += u.T
         self.particles += noise
 
@@ -79,7 +79,7 @@ class ParticleFilter:
 
         # resample
         N_eff = 1 / np.sum(np.square(self.weights))
-        if N_eff < self.particle_num / 2:
+        if N_eff < self.particle_num / 3:
             print("resample")
             self.resample()
 
