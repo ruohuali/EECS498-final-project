@@ -3,10 +3,10 @@ import time
 import pybullet_data
 import numpy as np
 
-from config import ROBOT_START_COORD, ROBOT_CMDS, TABLE1_COORD, TABLE2_COORD, SENSOR_NOISE_FUNC, MOTION_NOISE_FUNC
+from CONFIG import ROBOT_START_COORD, ROBOT_CMDS, TABLE1_COORD, TABLE2_COORD, SENSOR_NOISE_FUNC, MOTION_NOISE_FUNC
 from loc_utils import drawSphereMarker
 from loc_utils import pose2Coord, coord2Pose, cmd2PoseChange, updateCoordByCmd
-from filters import kalmanFilter
+from filters import KalmanFilter, ParticleFilter
 
 
 def gps(body_id, noise_func):
@@ -48,12 +48,14 @@ def main():
     table1_id = p.loadURDF("table/table.urdf", TABLE1_COORD, start_orientation)
     table2_id = p.loadURDF("table/table.urdf", TABLE2_COORD, start_orientation)
 
-    # drawSphereMarker([0, 0, 1], 0.1, (0, 0, 1, .5))
-    # drawSphereMarker([0, 1, 0], 0.1, (0, 1, 0, .8))
 
     robot_cur_coord = ROBOT_START_COORD
-    mu = np.array([ROBOT_START_COORD[:2]]).T
+
+    mu = coord2Pose(robot_cur_coord)
     sigma = np.eye(2)
+    kf = KalmanFilter(mu, sigma)
+    init_pos = coord2Pose(robot_cur_coord)
+    pf = ParticleFilter(init_pos, particle_num=10000)
     print("shape", mu.shape, mu, sigma.shape, sigma)
     for step_idx, cmd in enumerate(ROBOT_CMDS):
         print("-" * 50)
@@ -69,9 +71,13 @@ def main():
         # filter try to estimate pose
         z = gps(robot_id, SENSOR_NOISE_FUNC)
         u = motor(cmd, MOTION_NOISE_FUNC)
-        mu, sigma = kalmanFilter(mu, sigma, z, u)
+
+        mu, sigma = kf(z, u)
         print("shape", mu.shape, sigma.shape, u.shape, z.shape)
-        drawSphereMarker([mu[0, :], mu[1, :], 1], 0.05, (1, 0, 0, .8))  # red is gt
+        drawSphereMarker([mu[0,:], mu[1,:], 1], 0.05, (1, 0, 0, .8))  # red is kf
+
+        es = pf(z, u)
+        drawSphereMarker([es[0,:], es[1,:], 1], 0.05, (0, 0, 1, .8))  # blue is pf
 
         # print the pos
         print("true pos", true_coord)

@@ -21,8 +21,12 @@ def updateCoordByCmd(cur_coord, cmd):
     coord = cur_coord + np.append(cmd, 0)
     return coord
 
-
 def drawSphereMarker(position, radius, color):
     vs_id = p.createVisualShape(p.GEOM_SPHERE, radius=radius, rgbaColor=color)
     marker_id = p.createMultiBody(basePosition=position, baseCollisionShapeIndex=-1, baseVisualShapeIndex=vs_id)
     return marker_id
+
+def drawSphereMarker4Particles(particles):
+    # N, 2
+    for particle in particles:
+        drawSphereMarker([particle[0], particle[1], 1], 0.001, (0, 0.1, 0.9, 0.1))
