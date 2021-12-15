@@ -39,8 +39,9 @@ class KalmanFilter:
 
 
 class ParticleFilter:
-    def sampleInitParticles(self, init_pos, num):
+    def sampleInitParticles(self, init_pos):
         center = init_pos.reshape(2)
+        print("init sample at", center)
         particles = np.random.multivariate_normal(center, [[0.1, 0], [0, 0.1]], self.particle_num)  # (N, 2)
         return particles
 
@@ -58,7 +59,7 @@ class ParticleFilter:
 
     def __init__(self, init_pos, particle_num=100):
         self.particle_num = particle_num
-        self.particles = self.sampleInitParticles(init_pos, self.particle_num)
+        self.particles = self.sampleInitParticles(init_pos)
         self.weights = np.ones(particle_num) / particle_num     # N,
 
     def __call__(self, z, u):
@@ -79,7 +80,7 @@ class ParticleFilter:
 
         # resample
         N_eff = 1 / np.sum(np.square(self.weights))
-        if N_eff < self.particle_num / 3:
+        if N_eff < self.particle_num / 2:
             print("resample")
             self.resample()
 

@@ -21,10 +21,12 @@ def updateCoordByCmd(cur_coord, cmd):
     coord = cur_coord + np.append(cmd, 0)
     return coord
 
+
 def drawSphereMarker(position, radius, color):
     vs_id = p.createVisualShape(p.GEOM_SPHERE, radius=radius, rgbaColor=color)
     marker_id = p.createMultiBody(basePosition=position, baseCollisionShapeIndex=-1, baseVisualShapeIndex=vs_id)
     return marker_id
+
 
 def drawSphereMarker4Particles(particle_filter, k=100):
     particles = particle_filter.particles.copy()
@@ -39,3 +41,11 @@ def drawSphereMarker4Gaussian(mu, sigma, k=100):
     samples = np.random.multivariate_normal(mu.squeeze(), sigma, k)
     for i, sample in enumerate(samples):
         drawSphereMarker([sample[0], sample[1], 1], 0.03, (0.7, 0.5, 0, 0.6))
+
+
+def drawNoise(noise_func, noise_args):
+    for _ in range(100):
+        noise = noise_func(**noise_args)
+        noise = list(noise.reshape(-1))
+        noise.append(1)
+        drawSphereMarker(noise, 0.03, (0, 0.5, 0.7, 0.6))
