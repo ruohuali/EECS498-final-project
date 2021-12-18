@@ -1,8 +1,5 @@
 import numpy as np
-import pybullet as p
-import pybullet_data
 
-from loc_utils import drawSphereMarker
 
 def genNormalNoise(mean=(0, 0), cov=(1, 1)):
     """@return noise ~ (2, 1)"""

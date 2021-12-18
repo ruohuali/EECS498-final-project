@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.special import softmax
 
@@ -41,7 +40,6 @@ class KalmanFilter:
 class ParticleFilter:
     def sampleInitParticles(self, init_pos):
         center = init_pos.reshape(2)
-        print("init sample at", center)
         particles = np.random.multivariate_normal(center, [[0.1, 0], [0, 0.1]], self.particle_num)  # (N, 2)
         return particles
 

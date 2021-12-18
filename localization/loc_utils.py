@@ -44,8 +44,9 @@ def drawSphereMarker4Gaussian(mu, sigma, k=100):
 
 
 def drawNoise(noise_func, noise_args):
-    for _ in range(100):
+    drawSphereMarker([0, 0, 1], 0.1, (1, 0.3, 0.3, 1))
+    for _ in range(1000):
         noise = noise_func(**noise_args)
         noise = list(noise.reshape(-1))
         noise.append(1)
-        drawSphereMarker(noise, 0.03, (0, 0.5, 0.7, 0.6))
+        drawSphereMarker(noise, 0.05, (1, 0, 0.5, 0.3))

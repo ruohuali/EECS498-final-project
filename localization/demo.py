@@ -1,10 +1,7 @@
-import pdb
-
 import pybullet as p
 import time
 import pybullet_data
 import numpy as np
-from pdb import set_trace
 
 from CONFIG import ROBOT_START_COORD, ROBOT_CMDS, TABLE1_COORD, TABLE2_COORD, TABLE3_COORD, TABLE4_COORD, \
     TABLE5_COORD, TABLE6_COORD, DOOR_COORD, \
@@ -14,11 +11,13 @@ from loc_utils import pose2Coord, coord2Pose, cmd2PoseChange, updateCoordByCmd
 from filters import KalmanFilter, ParticleFilter
 
 
-def gps(body_id, noise_func, noise_args):
+def gps(body_id, noise_func, noise_args, abnormal=False):
     """@return noisy pose ~ (2, 1) is true coord + noise"""
     true_coord, _ = p.getBasePositionAndOrientation(body_id)  # tuple(x, y, z)
     true_pos = coord2Pose(true_coord)
     noise = noise_func(**noise_args)
+    if abnormal:
+        noise = np.array([[-4, -4]]).T
     noisy_pose = true_pos + noise
     return noisy_pose
 
@@ -38,6 +37,20 @@ def motor(cmd, noise_func, noise_args):
     noise = noise_func(**noise_args)
     received_cmd = true_cmd - noise
     return received_cmd
+
+
+def displaySensorNoise():
+    # set up the physics client
+    physics_client_id = p.connect(p.GUI)
+    p.setAdditionalSearchPath(pybullet_data.getDataPath())
+    p.setGravity(0, 0, -10)
+
+    # load the models
+    plane_id = p.loadURDF("plane.urdf")
+    drawNoise(SENSOR_NOISE_FUNC, SENSOR_NOISE_ARGS)
+
+    COUNTDOWN = 90
+    time.sleep(COUNTDOWN)
 
 
 def main():
@@ -76,28 +89,39 @@ def main():
     pf_final_error = 0.
 
     for step_idx, cmd in enumerate(ROBOT_CMDS):
-        print("-" * 50)
-        print("step", step_idx)
+        # print("-" * 50)
+        # print("step", step_idx)
 
         # physics engine do cmd
         robot_cur_coord = updateCoordByCmd(robot_cur_coord, cmd)
         p.resetBasePositionAndOrientation(robot_id, robot_cur_coord, start_orientation)
         p.stepSimulation()
         true_coord, _ = p.getBasePositionAndOrientation(robot_id)
-        drawSphereMarker([true_coord[0], true_coord[1], 2], 0.1, (0, 1, 0, .8))  # green is gt
 
         # filter try to estimate pose
-        z = gps(robot_id, SENSOR_NOISE_FUNC, SENSOR_NOISE_ARGS)
+        if step_idx == 10:
+            z = gps(robot_id, SENSOR_NOISE_FUNC, SENSOR_NOISE_ARGS, abnormal=True)
+        else:
+            z = gps(robot_id, SENSOR_NOISE_FUNC, SENSOR_NOISE_ARGS)
         u = motor(cmd, MOTION_NOISE_FUNC, MOTION_NOISE_ARGS)
-        drawSphereMarker([z[0, :], z[1, :], 2], 0.1, (0.5, 0.1, 0.5, .8))  # yellow is noisy sensor
-
         mu, sigma = kf(z, u)
-        drawSphereMarker([mu[0, :], mu[1, :], 2], 0.1, (1, 0, 0, .8))  # red is kf
-        # drawSphereMarker4Gaussian(mu, sigma)
-
         es = pf(z, u)
-        drawSphereMarker([es[0, :], es[1, :], 2], 0.1, (0, 0, 1, .8))  # blue is pf
-        # drawSphereMarker4Particles(pf)
+
+        # display
+        if step_idx == 100:
+            drawSphereMarker([true_coord[0], true_coord[1], 0.5], 0.15, (0, 1, 0, .8))  # green is gt
+            drawSphereMarker([z[0, :], z[1, :], 0.5], 0.15, (0.5, 0.1, 0.5, .8))  # yellow is noisy sensor
+            drawSphereMarker([mu[0, :], mu[1, :], 0.5], 0.15, (1, 0, 0, .8))  # red is kf
+            drawSphereMarker4Gaussian(mu, sigma)
+            drawSphereMarker([es[0, :], es[1, :], 0.5], 0.15, (0, 0, 1, .8))  # blue is pf
+            drawSphereMarker4Particles(pf)
+        else:
+            drawSphereMarker([true_coord[0], true_coord[1], 0.5], 0.1, (0, 1, 0, .8))  # green is gt
+            drawSphereMarker([z[0, :], z[1, :], 0.5], 0.08, (0.5, 0.1, 0.5, .8))  # yellow is noisy sensor
+            drawSphereMarker([mu[0, :], mu[1, :], 0.5], 0.1, (1, 0, 0, .8))  # red is kf
+            # drawSphereMarker4Gaussian(mu, sigma)
+            drawSphereMarker([es[0, :], es[1, :], 0.5], 0.1, (0, 0, 1, .8))  # blue is pf
+            # drawSphereMarker4Particles(pf)
 
         # update errors
         mu = mu.reshape(-1)
@@ -123,13 +147,19 @@ def main():
     print("MAE:", sum(pf_l1_errors) / len(pf_l1_errors))
     print("MSE:", sum(pf_l2_errors) / len(pf_l2_errors))
     print("FE:", pf_final_error)
+    print("=" * 30)
 
-    countdown = 30
-    for _ in range(countdown):
-        time.sleep(1)
+    COUNTDOWN = 30
+    time.sleep(COUNTDOWN)
 
     p.disconnect()
 
 
 if __name__ == "__main__":
+    print('=' * 50)
+    print('=' * 50)
+    print("Please expect this demo script to run for 30 seconds to 5 minutes :-)")
+    print('=' * 50)
+    print('=' * 50)
     main()
+    # displaySensorNoise()
