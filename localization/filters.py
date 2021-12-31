@@ -63,7 +63,7 @@ class ParticleFilter:
     def __call__(self, z, u):
         """
         assume
-        P(z | x) = normalize( ||x - z||^2 )
+        P(z | x) = normalize( 1 / ||x - z|| )
         @param u ~ (2, 1)
         @param z ~ (2, 1)
         """
@@ -71,14 +71,14 @@ class ParticleFilter:
         self.move(u)
 
         # update step
-        diff = self.particles.T - z  # 2, N
-        lh = np.linalg.norm(diff, axis=0)  # N,
+        diff = (self.particles.T - z)  # 2, N
+        lh = 1 / np.linalg.norm(diff, axis=0)  # N,
         self.weights *= lh  # N,
         self.weights /= np.sum(self.weights)
 
         # resample
         N_eff = 1 / np.sum(np.square(self.weights))
-        if N_eff < self.particle_num / 2:
+        if N_eff < self.particle_num / 3:
             print("resample")
             self.resample()
 

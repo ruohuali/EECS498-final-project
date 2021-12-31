@@ -46,11 +46,6 @@ ROBOT_CMDS = [
     np.array([1, 0]),  # x 12 y -4
 ]
 
-# SENSOR_NOISE_FUNC = genUniformNoise
-# SENSOR_NOISE_ARGS = {"center": -3, "length": 1}
-# MOTION_NOISE_FUNC = genUniformNoise
-# MOTION_NOISE_ARGS = {"center": 0, "length": 0.5}
-
 
 # experiment 1
 # SENSOR_NOISE_FUNC = genNormalNoise

@@ -89,39 +89,25 @@ def main():
     pf_final_error = 0.
 
     for step_idx, cmd in enumerate(ROBOT_CMDS):
-        # print("-" * 50)
-        # print("step", step_idx)
-
         # physics engine do cmd
         robot_cur_coord = updateCoordByCmd(robot_cur_coord, cmd)
         p.resetBasePositionAndOrientation(robot_id, robot_cur_coord, start_orientation)
+
         p.stepSimulation()
         true_coord, _ = p.getBasePositionAndOrientation(robot_id)
 
         # filter try to estimate pose
-        if step_idx == 10:
-            z = gps(robot_id, SENSOR_NOISE_FUNC, SENSOR_NOISE_ARGS, abnormal=True)
-        else:
-            z = gps(robot_id, SENSOR_NOISE_FUNC, SENSOR_NOISE_ARGS)
+        z = gps(robot_id, SENSOR_NOISE_FUNC, SENSOR_NOISE_ARGS)
         u = motor(cmd, MOTION_NOISE_FUNC, MOTION_NOISE_ARGS)
         mu, sigma = kf(z, u)
         es = pf(z, u)
 
         # display
-        if step_idx == 100:
-            drawSphereMarker([true_coord[0], true_coord[1], 0.5], 0.15, (0, 1, 0, .8))  # green is gt
-            drawSphereMarker([z[0, :], z[1, :], 0.5], 0.15, (0.5, 0.1, 0.5, .8))  # yellow is noisy sensor
-            drawSphereMarker([mu[0, :], mu[1, :], 0.5], 0.15, (1, 0, 0, .8))  # red is kf
-            drawSphereMarker4Gaussian(mu, sigma)
-            drawSphereMarker([es[0, :], es[1, :], 0.5], 0.15, (0, 0, 1, .8))  # blue is pf
-            drawSphereMarker4Particles(pf)
-        else:
-            drawSphereMarker([true_coord[0], true_coord[1], 0.5], 0.1, (0, 1, 0, .8))  # green is gt
-            drawSphereMarker([z[0, :], z[1, :], 0.5], 0.08, (0.5, 0.1, 0.5, .8))  # yellow is noisy sensor
-            drawSphereMarker([mu[0, :], mu[1, :], 0.5], 0.1, (1, 0, 0, .8))  # red is kf
-            # drawSphereMarker4Gaussian(mu, sigma)
-            drawSphereMarker([es[0, :], es[1, :], 0.5], 0.1, (0, 0, 1, .8))  # blue is pf
-            # drawSphereMarker4Particles(pf)
+        drawSphereMarker([true_coord[0], true_coord[1], 1], 0.1, (0, 1, 0, .8))  # green is gt
+        drawSphereMarker([z[0, :], z[1, :], 1], 0.08, (0.5, 0.1, 0.5, .8))  # yellow is noisy sensor
+        drawSphereMarker([mu[0, :], mu[1, :], 1], 0.1, (1, 0, 0, .8))  # red is kf
+        drawSphereMarker([es[0, :], es[1, :], 1], 0.1, (0, 0, 1, .8))  # blue is pf
+
 
         # update errors
         mu = mu.reshape(-1)
@@ -132,8 +118,6 @@ def main():
         pf_l1_errors.append((abs(true_coord[0] - es[0]) + abs(true_coord[1] - es[1])))
         pf_l2_errors.append(((true_coord[0] - es[0]) ** 2 + (true_coord[1] - es[1]) ** 2) ** (0.5))
         pf_final_error = ((true_coord[0] - es[0]) ** 2 + (true_coord[1] - es[1]) ** 2) ** (0.5)
-
-        # pdb.set_trace()
 
     # show errors
     print("=" * 30)
@@ -162,4 +146,3 @@ if __name__ == "__main__":
     print('=' * 50)
     print('=' * 50)
     main()
-    # displaySensorNoise()
